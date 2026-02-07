@@ -51,6 +51,10 @@ $event->add_record_snapshot("course", $course);
 $event->add_record_snapshot("scicalc", $scicalc);
 $event->trigger();
 
+// This is what marks "viewed" for completion tracking.
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
+
 $PAGE->requires->strings_for_js([
     "error_generic",
     "error_unknown_token",
