@@ -34,6 +34,8 @@ function scicalc_supports(string $feature) {
             return true;
         case FEATURE_SHOW_DESCRIPTION:
             return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS:
+            return true;
         case FEATURE_MOD_ARCHETYPE:
             return MOD_ARCHETYPE_RESOURCE;
         case FEATURE_MOD_PURPOSE:
