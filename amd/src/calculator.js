@@ -1,3 +1,26 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * calculator.js
+ *
+ * @package   mod_scicalc
+ * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 define([], function () {
     "use strict";
 
@@ -101,7 +124,7 @@ define([], function () {
             const t = tokens[i];
 
             if (t.type === "unknown") {
-                throw new Error("Unknown token");
+                throw new Error("error_unknown_token");
             }
 
             if (t.type === "number") {
@@ -128,7 +151,7 @@ define([], function () {
                     output.push(stack.pop());
                 }
                 if (!stack.length) {
-                    throw new Error("Misplaced comma");
+                    throw new Error("error_misplaced_comma");
                 }
                 // Increase arg count for the current function (if any).
                 if (argcStack.length) {
@@ -159,7 +182,7 @@ define([], function () {
                     output.push(stack.pop());
                 }
                 if (!stack.length) {
-                    throw new Error("Mismatched parentheses");
+                    throw new Error("error_mismatched_parentheses");
                 }
                 stack.pop(); // pop '('
 
@@ -168,7 +191,7 @@ define([], function () {
                     const fn = stack.pop();
                     const argc = argcStack.pop() ?? 0;
                     if (argc < 1) {
-                        throw new Error("Zero-argument function call");
+                        throw new Error("error_zero_argument_function_call");
                     }
                     output.push({type: "func", value: fn.value, argc: argc});
                 }
@@ -232,16 +255,16 @@ define([], function () {
                 continue;
             }
 
-            throw new Error("Invalid token flow");
+            throw new Error("error_invalid_token_flow");
         }
 
         while (stack.length) {
             const t = stack.pop();
             if (t.value === "(" || t.value === ")") {
-                throw new Error("Mismatched parentheses");
+                throw new Error("error_mismatched_parentheses");
             }
             if (t.type === "func") {
-                throw new Error("Unclosed function call");
+                throw new Error("error_unclosed_function_call");
             }
             output.push(t);
         }
@@ -257,19 +280,19 @@ define([], function () {
      */
     const factorial = (n) => {
         if (!Number.isFinite(n)) {
-            throw new Error("Invalid factorial");
+            throw new Error("error_invalid_factorial");
         }
         if (n < 0) {
-            throw new Error("Negative factorial");
+            throw new Error("error_negative_factorial");
         }
         if (!Number.isInteger(n)) {
-            throw new Error("Non-integer factorial");
+            throw new Error("error_non_integer_factorial");
         }
         let r = 1;
         for (let i = 2; i <= n; i++) {
             r *= i;
             if (!Number.isFinite(r)) {
-                throw new Error("Factorial overflow");
+                throw new Error("error_factorial_overflow");
             }
         }
         return r;
@@ -305,7 +328,7 @@ define([], function () {
 
             const f1 = (fn) => {
                 if (args.length !== 1) {
-                    throw new Error("Arity mismatch");
+                    throw new Error("error_arity_mismatch");
                 }
                 return fn(args[0]);
             };
@@ -323,7 +346,7 @@ define([], function () {
 
             if (n === "log") {
                 if (args.length !== 1) {
-                    throw new Error("Arity mismatch");
+                    throw new Error("error_arity_mismatch");
                 }
                 return Math.log10 ? Math.log10(args[0]) : (Math.log(args[0]) / Math.log(10));
             }
@@ -334,35 +357,35 @@ define([], function () {
 
             if (n === "pow") {
                 if (args.length !== 2) {
-                    throw new Error("Arity mismatch");
+                    throw new Error("error_arity_mismatch");
                 }
                 return Math.pow(args[0], args[1]);
             }
 
             if (n === "min") {
                 if (args.length < 1) {
-                    throw new Error("Arity mismatch");
+                    throw new Error("error_arity_mismatch");
                 }
                 return Math.min(...args);
             }
 
             if (n === "max") {
                 if (args.length < 1) {
-                    throw new Error("Arity mismatch");
+                    throw new Error("error_arity_mismatch");
                 }
                 return Math.max(...args);
             }
 
-            throw new Error("Unsupported function");
+            throw new Error("error_unsupported_function");
         };
 
         const popNum = () => {
             if (!stack.length) {
-                throw new Error("Stack underflow");
+                throw new Error("error_stack_underflow");
             }
             const v = stack.pop();
             if (!Number.isFinite(v)) {
-                throw new Error("Invalid number");
+                throw new Error("error_invalid_number");
             }
             return v;
         };
@@ -379,7 +402,7 @@ define([], function () {
                 // Only constants are allowed as plain identifiers.
                 const c = getConst(t.value);
                 if (c === null) {
-                    throw new Error("Unknown identifier");
+                    throw new Error("error_unknown_identifier");
                 }
                 stack.push(c);
                 continue;
@@ -388,7 +411,7 @@ define([], function () {
             if (t.type === "func") {
                 const argc = t.argc ?? 1;
                 if (stack.length < argc) {
-                    throw new Error("Stack underflow");
+                    throw new Error("error_stack_underflow");
                 }
                 const args = [];
                 for (let k = 0; k < argc; k++) {
@@ -421,21 +444,21 @@ define([], function () {
                 else if (t.value === "/") stack.push(a / b);
                 else if (t.value === "%") stack.push(a % b);
                 else if (t.value === "^") stack.push(Math.pow(a, b));
-                else throw new Error("Unsupported operator");
+                else throw new Error("error_unsupported_operator");
 
                 continue;
             }
 
-            throw new Error("Unexpected token");
+            throw new Error("error_unexpected_token");
         }
 
         if (stack.length !== 1) {
-            throw new Error("Invalid expression");
+            throw new Error("error_invalid_expression");
         }
 
         const result = stack[0];
         if (!Number.isFinite(result)) {
-            throw new Error("Non-finite result");
+            throw new Error("error_non_finite_result");
         }
 
         return result;
@@ -642,7 +665,8 @@ define([], function () {
             input.value = formatted;
             input.focus();
         } catch (e) {
-            setErrorVisible(true, e.message);
+            let message = M.util.get_string(e.message, "mod_scicalc")
+            setErrorVisible(true, message);
         }
     };
 
@@ -661,8 +685,18 @@ define([], function () {
         historyItems = loadHistory(`mod_scicalc_history_v1_${cmid}`);
         renderHistory(history);
 
-        calculator.addEventListener("click", (ev) => {
-            const btn = ev.target.closest("[data-action]");
+        let equalsLocked = false;
+        calculator.addEventListener("click", (event) => {
+            if (equalsLocked) {
+                alert("Don't double-click.");
+                return;
+            }
+            equalsLocked = true;
+            window.setTimeout(() => {
+                equalsLocked = false;
+            }, 250);
+
+            const btn = event.target.closest("[data-action]");
             if (!btn) {
                 return;
             }

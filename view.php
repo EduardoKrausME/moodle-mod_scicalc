@@ -51,6 +51,28 @@ $event->add_record_snapshot("course", $course);
 $event->add_record_snapshot("scicalc", $scicalc);
 $event->trigger();
 
+$PAGE->requires->strings_for_js([
+    "error_generic",
+    "error_unknown_token",
+    "error_misplaced_comma",
+    "error_mismatched_parentheses",
+    "error_zero_argument_function_call",
+    "error_invalid_token_flow",
+    "error_unclosed_function_call",
+    "error_invalid_factorial",
+    "error_negative_factorial",
+    "error_non_integer_factorial",
+    "error_factorial_overflow",
+    "error_arity_mismatch",
+    "error_unsupported_function",
+    "error_stack_underflow",
+    "error_invalid_number",
+    "error_unknown_identifier",
+    "error_unsupported_operator",
+    "error_unexpected_token",
+    "error_invalid_expression",
+    "error_non_finite_result",
+], "mod_scicalc");
 $PAGE->requires->js_call_amd("mod_scicalc/calculator", "init", [$cm->id]);
 echo $OUTPUT->header();
 

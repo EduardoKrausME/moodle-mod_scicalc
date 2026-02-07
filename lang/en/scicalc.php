@@ -24,20 +24,35 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string["pluginname"] = "Scientific Calculator";
-$string["modulename"] = "Scientific Calculator";
-$string["modulenameplural"] = "Scientific Calculators";
-
-$string["scicalc:addinstance"] = "Add a new Scientific Calculator";
-$string["scicalc:view"] = "View Scientific Calculator";
-
-$string["intro"] = "Description";
-$string["calculator_title"] = "Calculator";
-$string["calculator_help"] =
-    "Type an expression and press Enter or '='. Supported: + - * / ^ ( ), sin, cos, tan, asin, acos, atan, sqrt, abs, ln, log, exp, pow(a,b), min, max, floor, ceil, round, factorial (!), pi, e.";
-$string["history_title"] = "History";
-$string["clear_history"] = "Clear history";
-$string["invalid_expression"] = "Invalid expression";
-
-$string["pluginadministration"] = "Administração da Calculadora Científica";
-
+$string['calculator_help'] = 'Type an expression and press Enter or "=". Supported: + - * / ^ ( ), sin, cos, tan, asin, acos, atan, sqrt, abs, ln, log, exp, pow(a,b), min, max, floor, ceil, round, factorial (!), pi, e.';
+$string['calculator_title'] = 'Calculator';
+$string['clear_history'] = 'Clear history';
+$string['error_arity_mismatch'] = 'Invalid number of arguments.';
+$string['error_factorial_overflow'] = 'Factorial exceeded the numeric limit.';
+$string['error_generic'] = 'Error evaluating the expression.';
+$string['error_invalid_expression'] = "I couldn't calculate it because the expression is written in a format the calculator doesn't recognize (check parentheses, signs, and names like <code>sin</code>/<code>sqrt</code>).";
+$string['error_invalid_factorial'] = 'Invalid factorial.';
+$string['error_invalid_number'] = 'Invalid number.';
+$string['error_invalid_token_flow'] = 'Invalid token flow.';
+$string['error_mismatched_parentheses'] = 'Mismatched parentheses.';
+$string['error_misplaced_comma'] = 'Comma in an invalid position.';
+$string['error_negative_factorial'] = "Can't compute the factorial of a negative number.";
+$string['error_non_finite_result'] = 'The result of this calculation was infinite or not a number (NaN). Check that you are not dividing by zero or using something like the square root of a negative number.';
+$string['error_non_integer_factorial'] = 'Factorial is only defined for integers.';
+$string['error_stack_underflow'] = 'A number or argument is missing. E.g.: <code>+2</code>, <code>2*</code>, <code>2 + ( )</code>, <code>2 +</code>, <code>sin()</code> with no value, <code>pow(2)</code> missing the 2nd argument.';
+$string['error_unclosed_function_call'] = 'Unclosed function call.';
+$string['error_unexpected_token'] = 'Unexpected token.';
+$string['error_unknown_identifier'] = 'Unknown identifier.';
+$string['error_unknown_token'] = 'Unknown token.';
+$string['error_unsupported_function'] = 'Unsupported function.';
+$string['error_unsupported_operator'] = 'Unsupported operator.';
+$string['error_zero_argument_function_call'] = 'Function call with no arguments.';
+$string['history_title'] = 'History';
+$string['intro'] = 'Description';
+$string['invalid_expression'] = 'Invalid expression';
+$string['modulename'] = 'Scientific Calculator';
+$string['modulenameplural'] = 'Scientific Calculators';
+$string['pluginadministration'] = 'Scientific Calculator Administration';
+$string['pluginname'] = 'Scientific Calculator';
+$string['scicalc:addinstance'] = 'Add a new Scientific Calculator';
+$string['scicalc:view'] = 'View Scientific Calculator';
