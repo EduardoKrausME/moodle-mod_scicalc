@@ -42,6 +42,12 @@ function scicalc_supports(string $feature) {
             return MOD_PURPOSE_CONTENT;
         case FEATURE_BACKUP_MOODLE2:
             return false;
+        case FEATURE_GROUPS:
+            return true;
+        case FEATURE_GROUPINGS:
+            return true;
+        case FEATURE_COMMENT:
+            return true;
         default:
             return null;
     }
