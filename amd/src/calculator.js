@@ -1,0 +1,736 @@
+define([], function () {
+    "use strict";
+
+    const MAX_HISTORY_ITEMS = 50;
+
+    /**
+     * Tokenizes an expression into numbers, identifiers, operators, parentheses and commas.
+     *
+     * @param {string} input
+     * @returns {Array}
+     */
+    const tokenize = (input) => {
+        const s = input.trim();
+        const tokens = [];
+        let i = 0;
+
+        const isDigit = (c) => c >= "0" && c <= "9";
+        const isAlpha = (c) => (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || c === "_";
+
+        while (i < s.length) {
+            const c = s[i];
+
+            if (c === " " || c === "\t" || c === "\n") {
+                i++;
+                continue;
+            }
+
+            // Number (supports decimals).
+            if (isDigit(c) || (c === "." && isDigit(s[i + 1]))) {
+                let start = i;
+                i++;
+                while (i < s.length && (isDigit(s[i]) || s[i] === ".")) {
+                    i++;
+                }
+                tokens.push({type: "number", value: s.slice(start, i)});
+                continue;
+            }
+
+            // Identifier (functions/constants).
+            if (isAlpha(c)) {
+                let start = i;
+                i++;
+                while (i < s.length && (isAlpha(s[i]) || isDigit(s[i]))) {
+                    i++;
+                }
+                tokens.push({type: "ident", value: s.slice(start, i)});
+                continue;
+            }
+
+            // Operators / punctuation.
+            if ("+-*/^(),!%".includes(c)) {
+                tokens.push({type: "op", value: c});
+                i++;
+                continue;
+            }
+
+            // Unknown.
+            tokens.push({type: "unknown", value: c});
+            i++;
+        }
+
+        return tokens;
+    };
+
+    /**
+     * Operator precedence map.
+     */
+    const precedence = {
+        "!": 5,
+        "^": 4,
+        "*": 3,
+        "/": 3,
+        "%": 3,
+        "+": 2,
+        "-": 2,
+        "u-": 4.5,
+    };
+
+    /**
+     * Associativity map.
+     */
+    const rightAssociative = {
+        "^": true,
+    };
+
+    /**
+     * Converts tokens to Reverse Polish Notation using Shunting-yard algorithm.
+     * Supports functions like sin(x), pow(a,b), min(a,b,c) with argument counting.
+     *
+     * @param {Array} tokens
+     * @returns {Array}
+     */
+    const toRpn = (tokens) => {
+        const output = [];
+        const stack = [];
+        const argcStack = []; // Parallel stack for function argument counts.
+
+        const isOp = (t) => t && t.type === "op";
+
+        for (let i = 0; i < tokens.length; i++) {
+            const t = tokens[i];
+
+            if (t.type === "unknown") {
+                throw new Error("Unknown token");
+            }
+
+            if (t.type === "number") {
+                output.push(t);
+                continue;
+            }
+
+            if (t.type === "ident") {
+                // Function if next token is '('.
+                const next = tokens[i + 1];
+                if (isOp(next) && next.value === "(") {
+                    stack.push({type: "func", value: t.value});
+                    argcStack.push(0); // Will become 1 when first arg starts.
+                } else {
+                    // Constant/identifier (pi/e etc.).
+                    output.push(t);
+                }
+                continue;
+            }
+
+            if (t.type === "op" && t.value === ",") {
+                // Argument separator: pop operators until '('.
+                while (stack.length && stack[stack.length - 1].value !== "(") {
+                    output.push(stack.pop());
+                }
+                if (!stack.length) {
+                    throw new Error("Misplaced comma");
+                }
+                // Increase arg count for the current function (if any).
+                if (argcStack.length) {
+                    argcStack[argcStack.length - 1] += 1;
+                }
+                continue;
+            }
+
+            if (t.type === "op" && t.value === "(") {
+                stack.push(t);
+                // If this '(' opens a function call, the function is below it.
+                // We mark that the first argument is starting (unless next is ')').
+                const next = tokens[i + 1];
+                if (argcStack.length) {
+                    // If next is ')', it's a zero-arg call (we will error later).
+                    if (!(isOp(next) && next.value === ")")) {
+                        // First argument exists.
+                        if (argcStack[argcStack.length - 1] === 0) {
+                            argcStack[argcStack.length - 1] = 1;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            if (t.type === "op" && t.value === ")") {
+                while (stack.length && stack[stack.length - 1].value !== "(") {
+                    output.push(stack.pop());
+                }
+                if (!stack.length) {
+                    throw new Error("Mismatched parentheses");
+                }
+                stack.pop(); // pop '('
+
+                // If top is a function, pop it into output with argc.
+                if (stack.length && stack[stack.length - 1].type === "func") {
+                    const fn = stack.pop();
+                    const argc = argcStack.pop() ?? 0;
+                    if (argc < 1) {
+                        throw new Error("Zero-argument function call");
+                    }
+                    output.push({type: "func", value: fn.value, argc: argc});
+                }
+                continue;
+            }
+
+            // Handle unary minus: if '-' at beginning or after operator/left paren/comma.
+            if (t.type === "op" && t.value === "-") {
+                const prev = tokens[i - 1];
+                const unary = (!prev) || (prev.type === "op" && ["+", "-", "*", "/", "^", "(", ",", "%"].includes(prev.value));
+                if (unary) {
+                    // Convert unary '-' into 'u-' operator.
+                    const u = {type: "op", value: "u-"};
+                    while (stack.length) {
+                        const top = stack[stack.length - 1];
+                        if (top.value === "(" || top.type === "func") {
+                            break;
+                        }
+                        const topPrec = precedence[top.value] ?? 0;
+                        const curPrec = precedence[u.value] ?? 0;
+                        if (curPrec <= topPrec) {
+                            output.push(stack.pop());
+                        } else {
+                            break;
+                        }
+                    }
+                    stack.push(u);
+                    continue;
+                }
+            }
+
+            if (t.type === "op") {
+                // Postfix factorial goes directly to output (RPN).
+                if (t.value === "!") {
+                    output.push(t);
+                    continue;
+                }
+
+                while (stack.length) {
+                    const top = stack[stack.length - 1];
+
+                    if (top.value === "(" || top.type === "func") {
+                        break;
+                    }
+
+                    const topPrec = precedence[top.value] ?? 0;
+                    const curPrec = precedence[t.value] ?? 0;
+
+                    const shouldPop = rightAssociative[t.value]
+                        ? (curPrec < topPrec)
+                        : (curPrec <= topPrec);
+
+                    if (!shouldPop) {
+                        break;
+                    }
+
+                    output.push(stack.pop());
+                }
+
+                stack.push(t);
+                continue;
+            }
+
+            throw new Error("Invalid token flow");
+        }
+
+        while (stack.length) {
+            const t = stack.pop();
+            if (t.value === "(" || t.value === ")") {
+                throw new Error("Mismatched parentheses");
+            }
+            if (t.type === "func") {
+                throw new Error("Unclosed function call");
+            }
+            output.push(t);
+        }
+
+        return output;
+    };
+
+    /**
+     * Safe factorial for non-negative integers.
+     *
+     * @param {number} n
+     * @returns {number}
+     */
+    const factorial = (n) => {
+        if (!Number.isFinite(n)) {
+            throw new Error("Invalid factorial");
+        }
+        if (n < 0) {
+            throw new Error("Negative factorial");
+        }
+        if (!Number.isInteger(n)) {
+            throw new Error("Non-integer factorial");
+        }
+        let r = 1;
+        for (let i = 2; i <= n; i++) {
+            r *= i;
+            if (!Number.isFinite(r)) {
+                throw new Error("Factorial overflow");
+            }
+        }
+        return r;
+    };
+
+    /**
+     * Evaluates an expression (tokens -> rpn -> eval).
+     *
+     * Supported constants: pi, e
+     * Supported functions: sin, cos, tan, asin, acos, atan, sqrt, abs, ln, log, exp, pow, min, max, floor, ceil, round
+     *
+     * @param {string} expr
+     * @returns {number}
+     */
+    const evaluate = (expr) => {
+        const tokens = tokenize(expr);
+        const rpn = toRpn(tokens);
+        const stack = [];
+
+        const getConst = (name) => {
+            const n = name.toLowerCase();
+            if (n === "pi") {
+                return Math.PI;
+            }
+            if (n === "e") {
+                return Math.E;
+            }
+            return null;
+        };
+
+        const callFunc = (name, args) => {
+            const n = name.toLowerCase();
+
+            const f1 = (fn) => {
+                if (args.length !== 1) {
+                    throw new Error("Arity mismatch");
+                }
+                return fn(args[0]);
+            };
+
+            if (n === "sin") return f1(Math.sin);
+            if (n === "cos") return f1(Math.cos);
+            if (n === "tan") return f1(Math.tan);
+            if (n === "asin") return f1(Math.asin);
+            if (n === "acos") return f1(Math.acos);
+            if (n === "atan") return f1(Math.atan);
+            if (n === "sqrt") return f1(Math.sqrt);
+            if (n === "abs") return f1(Math.abs);
+            if (n === "exp") return f1(Math.exp);
+            if (n === "ln") return f1(Math.log);
+
+            if (n === "log") {
+                if (args.length !== 1) {
+                    throw new Error("Arity mismatch");
+                }
+                return Math.log10 ? Math.log10(args[0]) : (Math.log(args[0]) / Math.log(10));
+            }
+
+            if (n === "floor") return f1(Math.floor);
+            if (n === "ceil") return f1(Math.ceil);
+            if (n === "round") return f1(Math.round);
+
+            if (n === "pow") {
+                if (args.length !== 2) {
+                    throw new Error("Arity mismatch");
+                }
+                return Math.pow(args[0], args[1]);
+            }
+
+            if (n === "min") {
+                if (args.length < 1) {
+                    throw new Error("Arity mismatch");
+                }
+                return Math.min(...args);
+            }
+
+            if (n === "max") {
+                if (args.length < 1) {
+                    throw new Error("Arity mismatch");
+                }
+                return Math.max(...args);
+            }
+
+            throw new Error("Unsupported function");
+        };
+
+        const popNum = () => {
+            if (!stack.length) {
+                throw new Error("Stack underflow");
+            }
+            const v = stack.pop();
+            if (!Number.isFinite(v)) {
+                throw new Error("Invalid number");
+            }
+            return v;
+        };
+
+        for (let i = 0; i < rpn.length; i++) {
+            const t = rpn[i];
+
+            if (t.type === "number") {
+                stack.push(parseFloat(t.value));
+                continue;
+            }
+
+            if (t.type === "ident") {
+                // Only constants are allowed as plain identifiers.
+                const c = getConst(t.value);
+                if (c === null) {
+                    throw new Error("Unknown identifier");
+                }
+                stack.push(c);
+                continue;
+            }
+
+            if (t.type === "func") {
+                const argc = t.argc ?? 1;
+                if (stack.length < argc) {
+                    throw new Error("Stack underflow");
+                }
+                const args = [];
+                for (let k = 0; k < argc; k++) {
+                    args.unshift(popNum());
+                }
+                const r = callFunc(t.value, args);
+                stack.push(r);
+                continue;
+            }
+
+            if (t.type === "op") {
+                if (t.value === "u-") {
+                    const a = popNum();
+                    stack.push(-a);
+                    continue;
+                }
+
+                if (t.value === "!") {
+                    const a = popNum();
+                    stack.push(factorial(a));
+                    continue;
+                }
+
+                const b = popNum();
+                const a = popNum();
+
+                if (t.value === "+") stack.push(a + b);
+                else if (t.value === "-") stack.push(a - b);
+                else if (t.value === "*") stack.push(a * b);
+                else if (t.value === "/") stack.push(a / b);
+                else if (t.value === "%") stack.push(a % b);
+                else if (t.value === "^") stack.push(Math.pow(a, b));
+                else throw new Error("Unsupported operator");
+
+                continue;
+            }
+
+            throw new Error("Unexpected token");
+        }
+
+        if (stack.length !== 1) {
+            throw new Error("Invalid expression");
+        }
+
+        const result = stack[0];
+        if (!Number.isFinite(result)) {
+            throw new Error("Non-finite result");
+        }
+
+        return result;
+    };
+
+    const insertAtCursor = (input, value) => {
+        const start = input.selectionStart || 0;
+        const end = input.selectionEnd || 0;
+        const before = input.value.slice(0, start);
+        const after = input.value.slice(end);
+        input.value = before + value + after;
+        const pos = start + value.length;
+        input.setSelectionRange(pos, pos);
+        input.focus();
+    };
+
+    /**
+     * Adds a history item (click restores the expression, not the result),
+     * and persists in localStorage.
+     *
+     * @param {HTMLElement} list
+     * @param {string} expr
+     * @param {string} result
+     */
+    const addHistory = (list, expr, result) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "list-group-item list-group-item-action";
+        item.innerHTML = `<div class="small text-muted text-truncate">${escapeHtml(expr)}</div>
+                      <div class="fw-semibold">${escapeHtml(result)}</div>`;
+
+        item.addEventListener("click", () => {
+            const input = document.getElementById("scicalc-display");
+            input.value = expr;
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        });
+
+        list.prepend(item);
+
+        // Persist.
+        historyItems.unshift({expr: expr, result: result, ts: Date.now()});
+        if (historyItems.length > MAX_HISTORY_ITEMS) {
+            historyItems.length = MAX_HISTORY_ITEMS;
+        }
+        saveHistory();
+    };
+
+    /**
+     * Renders full history list.
+     *
+     * @param {HTMLElement} list
+     */
+    const renderHistory = (list,) => {
+        list.innerHTML = "";
+        const frag = document.createDocumentFragment();
+
+        // historyItems are stored newest-first.
+        historyItems.forEach((h) => {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "list-group-item list-group-item-action";
+            item.innerHTML = `<div class="small text-muted text-truncate">${escapeHtml(h.expr)}</div>
+                          <div class="fw-semibold">${escapeHtml(h.result)}</div>`;
+            item.addEventListener("click", () => {
+                const input = document.getElementById("scicalc-display");
+                input.value = h.expr;
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            });
+            frag.appendChild(item);
+        });
+
+        list.appendChild(frag);
+    };
+
+    /**
+     * Checks if localStorage is available.
+     *
+     * @returns {boolean}
+     */
+    const hasLocalStorage = () => {
+        try {
+            const k = "__scicalc_test__";
+            window.localStorage.setItem(k, "1");
+            window.localStorage.removeItem(k);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    /**
+     * Loads history from localStorage.
+     *
+     * @param {string} key
+     * @returns {Array<{expr: string, result: string, ts: number}>}
+     */
+    const loadHistory = (key) => {
+        if (!hasLocalStorage()) {
+            return [];
+        }
+        try {
+            const raw = window.localStorage.getItem(key);
+            if (!raw) {
+                return [];
+            }
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+            return parsed
+                .filter(i => i && typeof i.expr === "string" && typeof i.result === "string")
+                .map(i => ({expr: i.expr, result: i.result, ts: Number(i.ts) || 0}))
+                .slice(0, MAX_HISTORY_ITEMS);
+        } catch (e) {
+            return [];
+        }
+    };
+
+    /**
+     * Saves history to localStorage.
+     *
+     * @param {string} key
+     * @param {Array} items
+     */
+    const saveHistory = (key, items) => {
+        if (!hasLocalStorage()) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(key, JSON.stringify(items.slice(0, MAX_HISTORY_ITEMS)));
+        } catch (e) {
+            // Ignore quota/security errors.
+        }
+    };
+
+    /**
+     * Removes history from localStorage.
+     *
+     * @param {string} key
+     */
+    const clearHistoryStorage = (key) => {
+        if (!hasLocalStorage()) {
+            return;
+        }
+        try {
+            window.localStorage.removeItem(key);
+        } catch (e) {
+            // Ignore.
+        }
+    };
+
+    const escapeHtml = (s) => {
+        return String(s)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll("\"", "&quot;")
+            .replaceAll("'", "&#039;");
+    };
+
+    const setErrorVisible = (show, message = false) => {
+        const elspan = document.querySelector("#scicalc-error span");
+        if (message) {
+            elspan.innerHTML = `: ${message}`;
+        } else {
+            elspan.innerHTML = "";
+        }
+
+        const elerror = document.getElementById("scicalc-error");
+        elerror.classList.toggle("d-none", !show);
+    };
+
+    const toggleSign = (input) => {
+        const v = input.value.trim();
+        if (!v) {
+            input.value = "-";
+            input.focus();
+            return;
+        }
+        if (v.startsWith("-")) {
+            input.value = v.slice(1);
+        } else {
+            input.value = "-" + v;
+        }
+        input.focus();
+    };
+
+    /**
+     * Executes calculation and updates UI.
+     *
+     * @param {HTMLInputElement} input
+     * @param {HTMLElement} history
+     */
+    const doEquals = (input, history) => {
+        setErrorVisible(false);
+        const expr = input.value;
+
+        try {
+            const result = evaluate(expr);
+            const formatted = String(result);
+            addHistory(history, expr, formatted);
+            input.value = formatted;
+            input.focus();
+        } catch (e) {
+            setErrorVisible(true, e.message);
+        }
+    };
+
+    let historyItems = null;
+
+    const init = (cmid) => {
+        const calculator = document.querySelector("#calculator-area");
+        if (!calculator) {
+            return;
+        }
+
+        calculator.style.display = "block"
+
+        const input = document.getElementById("scicalc-display");
+        const history = document.getElementById("scicalc-history");
+        historyItems = loadHistory(`mod_scicalc_history_v1_${cmid}`);
+        renderHistory(history);
+
+        calculator.addEventListener("click", (ev) => {
+            const btn = ev.target.closest("[data-action]");
+            if (!btn) {
+                return;
+            }
+
+            const action = btn.getAttribute("data-action");
+
+            if (action === "insert") {
+                insertAtCursor(input, btn.getAttribute("data-value") || "");
+                return;
+            }
+
+            if (action === "func") {
+                const fn = btn.getAttribute("data-func") || "";
+                if (fn) {
+                    insertAtCursor(input, fn + "(");
+                }
+                return;
+            }
+
+            if (action === "equals") {
+                doEquals(input, history);
+                return;
+            }
+
+            if (action === "clear") {
+                setErrorVisible(false);
+                input.value = "";
+                input.focus();
+                return;
+            }
+
+            if (action === "backspace") {
+                setErrorVisible(false);
+                const start = input.selectionStart || 0;
+                const end = input.selectionEnd || 0;
+                if (start !== end) {
+                    const before = input.value.slice(0, start);
+                    const after = input.value.slice(end);
+                    input.value = before + after;
+                    input.setSelectionRange(start, start);
+                } else if (start > 0) {
+                    input.value = input.value.slice(0, start - 1) + input.value.slice(start);
+                    input.setSelectionRange(start - 1, start - 1);
+                }
+                input.focus();
+                return;
+            }
+
+            if (action === "clear-history") {
+                history.innerHTML = "";
+                historyItems.length = 0;
+                renderHistory(history, historyItems);
+                clearHistoryStorage();
+                return;
+            }
+
+            if (action === "toggle-sign") {
+                toggleSign(input);
+            }
+        });
+
+        input.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+                ev.preventDefault();
+                doEquals(input, history);
+            }
+        });
+    };
+
+    return {init: init};
+});

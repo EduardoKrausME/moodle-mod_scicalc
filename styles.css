@@ -1,0 +1,150 @@
+.mod-scicalc #scicalc-display {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.mod-scicalc .mod-scicalc .list-group-item .fw-semibold {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+@media (min-width: 992px) {
+  .mod-scicalc .history-area {
+    padding-left: 18px;
+  }
+}
+@media (max-width: 991px) {
+  .mod-scicalc .history-area {
+    padding-top: 18px;
+  }
+}
+.mod-scicalc .calculator {
+  background: radial-gradient(1200px 600px at 30% 0%, rgba(255, 255, 255, 0.06), transparent 55%), linear-gradient(to bottom, #101622, #0b0e12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  padding: 1.25rem;
+}
+.mod-scicalc .calculator #scicalc-display {
+  background: radial-gradient(900px 250px at 20% 0%, rgba(0, 255, 178, 0.09), transparent 55%), linear-gradient(to bottom, #0a1a15, #07130f);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #d9ffe9;
+  border-radius: 16px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  letter-spacing: 0.4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 10px 24px rgba(0, 0, 0, 0.55), 0 18px 28px rgba(0, 0, 0, 0.45);
+  padding: 0.9rem 1rem;
+}
+.mod-scicalc .calculator #scicalc-display::placeholder {
+  color: rgba(217, 255, 233, 0.45);
+}
+.mod-scicalc .calculator #scicalc-display:focus {
+  outline: none;
+  border-color: rgba(0, 255, 178, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 10px 24px rgba(0, 0, 0, 0.55), 0 0 0 0.25rem rgba(0, 255, 178, 0.12), 0 18px 28px rgba(0, 0, 0, 0.45);
+}
+.mod-scicalc .calculator .btn {
+  border-radius: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-transform: none;
+  transition: transform 90ms ease, filter 90ms ease, box-shadow 90ms ease;
+}
+.mod-scicalc .calculator .btn:focus {
+  box-shadow: 0 0 0 0.25rem rgba(110, 168, 254, 0.18);
+}
+.mod-scicalc .calculator .btn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.mod-scicalc .calculator .btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4), 0 8px 14px rgba(0, 0, 0, 0.28);
+}
+.mod-scicalc .calculator .calculator-numbers > div {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (min-width: 992px) {
+  .mod-scicalc .calculator .calculator-numbers {
+    padding-right: 25px;
+  }
+}
+@media (max-width: 991px) {
+  .mod-scicalc .calculator .calculator-numbers {
+    order: 1;
+  }
+}
+.mod-scicalc .calculator .calculator-numbers button {
+  min-height: 56px;
+}
+.mod-scicalc .calculator .buttons-action-insert button {
+  width: 100%;
+}
+.mod-scicalc .calculator .buttons-action-func {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 991px) {
+  .mod-scicalc .calculator .buttons-action-func {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+.mod-scicalc .calculator button.btn {
+  background: linear-gradient(to bottom, #232e41, #1a2230);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e9eef7;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.45), 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+.mod-scicalc .calculator button[data-action=func] {
+  background: linear-gradient(to bottom, #242045, #1b1834);
+  border: 1px solid rgba(180, 150, 255, 0.2);
+  color: #f0ecff;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.45), 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+.mod-scicalc .calculator button[data-action=insert][data-value="+"],
+.mod-scicalc .calculator button[data-action=insert][data-value="-"],
+.mod-scicalc .calculator button[data-action=insert][data-value="*"],
+.mod-scicalc .calculator button[data-action=insert][data-value="/"],
+.mod-scicalc .calculator button[data-action=insert][data-value="^"],
+.mod-scicalc .calculator button[data-action=insert][data-value="%"],
+.mod-scicalc .calculator button[data-action=insert][data-value="!"],
+.mod-scicalc .calculator button[data-action=insert][data-value=","],
+.mod-scicalc .calculator button[data-action=insert][data-value="("],
+.mod-scicalc .calculator button[data-action=insert][data-value=")"] {
+  background: linear-gradient(to bottom, #1a3946, #132a33);
+  border: 1px solid rgba(80, 220, 255, 0.2);
+  color: #dff9ff;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.45), 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+.mod-scicalc .calculator button[data-action=equals] {
+  background: linear-gradient(to bottom, #ffa552, #ff8a1f);
+  border: 1px solid rgba(255, 190, 120, 0.45);
+  color: #1b0f05;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.4), 0 16px 22px rgba(0, 0, 0, 0.35);
+}
+.mod-scicalc .calculator button[data-action=equals]:hover {
+  filter: brightness(1.03) saturate(1.05);
+}
+.mod-scicalc .calculator button[data-action=equals]:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 138, 31, 0.22), 0 7px 0 rgba(0, 0, 0, 0.4), 0 16px 22px rgba(0, 0, 0, 0.35);
+}
+.mod-scicalc .calculator button[data-action=clear],
+.mod-scicalc .calculator button[data-action=backspace],
+.mod-scicalc .calculator button[data-action=clear-history] {
+  background: linear-gradient(to bottom, #4d1b2a, #3a1420);
+  border: 1px solid rgba(255, 120, 160, 0.22);
+  color: #ffe6f0;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.45), 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+.mod-scicalc .calculator .d-flex.flex-wrap.gap-2.mb-2 button.btn {
+  padding: 0.45rem 0.75rem;
+  font-weight: 800;
+}
+.mod-scicalc .calculator .d-grid.gap-2 button.btn {
+  padding: 0.85rem 0.25rem;
+  line-height: 1;
+  box-shadow: 0 7px 0 rgba(0, 0, 0, 0.45), 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+.mod-scicalc .calculator #scicalc-error {
+  background: rgba(255, 60, 120, 0.1);
+  border: 1px solid rgba(255, 60, 120, 0.3);
+  color: rgba(255, 220, 235, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 14px 22px rgba(0, 0, 0, 0.35);
+}
