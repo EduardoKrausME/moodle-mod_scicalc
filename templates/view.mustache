@@ -41,10 +41,10 @@
                                placeholder="e.g. sin(pi/2)+sqrt(9)*2">
 
                         <div class="btn-group btn-group-sm childcourse-angle-controls" role="group" aria-label="Angle mode">
-                            <input type="radio" class="btn-check" name="anglemode" id="anglemode-deg" autocomplete="off" checked>
+                            <input type="radio" class="btn-check" name="anglemode" id="anglemode-deg" checked>
                             <label class="btn btn-outline-secondary" for="anglemode-deg">DEG</label>
 
-                            <input type="radio" class="btn-check" name="anglemode" id="anglemode-rad" autocomplete="off">
+                            <input type="radio" class="btn-check" name="anglemode" id="anglemode-rad">
                             <label class="btn btn-outline-secondary" for="anglemode-rad">RAD</label>
                         </div>
                     </div>
@@ -146,7 +146,7 @@
             <div class="col-12 col-lg-4 history-area">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <div class="fw-semibold">{{#str}}history_title, scicalc{{/str}}</div>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="clear-history">
+                    <button class="btn btn-sm btn-danger data-action-clear-history" type="button" data-action="clear-history">
                         {{#str}}clear_history, scicalc{{/str}}
                     </button>
                 </div>
