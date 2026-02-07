@@ -495,12 +495,12 @@ define([], function () {
      * @param {string} expr
      * @param {string} result
      */
-    const addHistory = (list, expr, result) => {
+    const addHistory = (expr, result) => {
         const item = document.createElement("button");
         item.type = "button";
         item.className = "list-group-item list-group-item-action";
-        item.innerHTML = `<div class="small text-muted text-truncate">${escapeHtml(expr)}</div>
-                      <div class="fw-semibold">${escapeHtml(result)}</div>`;
+        item.innerHTML = `<div class="small text-muted text-truncate">${escapeHtml(expr)}</div>` +
+            `<div class="fw-semibold">${escapeHtml(result)}</div>`;
 
         item.addEventListener("click", () => {
             const input = document.getElementById("scicalc-display");
@@ -509,7 +509,8 @@ define([], function () {
             input.setSelectionRange(input.value.length, input.value.length);
         });
 
-        list.prepend(item);
+        let history = document.getElementById("scicalc-history");
+        history.prepend(item);
 
         // Persist.
         historyItems.unshift({expr: expr, result: result, ts: Date.now()});
@@ -521,11 +522,11 @@ define([], function () {
 
     /**
      * Renders full history list.
-     *
-     * @param {HTMLElement} list
      */
-    const renderHistory = (list,) => {
-        list.innerHTML = "";
+    const renderHistory = () => {
+        let history = document.getElementById("scicalc-history");
+
+        history.innerHTML = "";
         const frag = document.createDocumentFragment();
 
         // historyItems are stored newest-first.
@@ -533,8 +534,8 @@ define([], function () {
             const item = document.createElement("button");
             item.type = "button";
             item.className = "list-group-item list-group-item-action";
-            item.innerHTML = `<div class="small text-muted text-truncate">${escapeHtml(h.expr)}</div>
-                          <div class="fw-semibold">${escapeHtml(h.result)}</div>`;
+            item.innerHTML = `<div class="small text-muted text-truncate">${escapeHtml(h.expr)}</div>` +
+                `<div class="fw-semibold">${escapeHtml(h.result)}</div>`;
             item.addEventListener("click", () => {
                 const input = document.getElementById("scicalc-display");
                 input.value = h.expr;
@@ -544,7 +545,7 @@ define([], function () {
             frag.appendChild(item);
         });
 
-        list.appendChild(frag);
+        history.appendChild(frag);
     };
 
     /**
@@ -566,15 +567,14 @@ define([], function () {
     /**
      * Loads history from localStorage.
      *
-     * @param {string} key
      * @returns {Array<{expr: string, result: string, ts: number}>}
      */
-    const loadHistory = (key) => {
+    const loadHistory = () => {
         if (!hasLocalStorage()) {
             return [];
         }
         try {
-            const raw = window.localStorage.getItem(key);
+            const raw = window.localStorage.getItem(historyKey);
             if (!raw) {
                 return [];
             }
@@ -593,16 +593,13 @@ define([], function () {
 
     /**
      * Saves history to localStorage.
-     *
-     * @param {string} key
-     * @param {Array} items
      */
-    const saveHistory = (key, items) => {
+    const saveHistory = () => {
         if (!hasLocalStorage()) {
             return;
         }
         try {
-            window.localStorage.setItem(key, JSON.stringify(items.slice(0, MAX_HISTORY_ITEMS)));
+            window.localStorage.setItem(historyKey, JSON.stringify(historyItems.slice(0, MAX_HISTORY_ITEMS)));
         } catch (e) {
             // Ignore quota/security errors.
         }
@@ -610,15 +607,13 @@ define([], function () {
 
     /**
      * Removes history from localStorage.
-     *
-     * @param {string} key
      */
-    const clearHistoryStorage = (key) => {
+    const clearHistoryStorage = () => {
         if (!hasLocalStorage()) {
             return;
         }
         try {
-            window.localStorage.removeItem(key);
+            window.localStorage.removeItem(historyKey);
         } catch (e) {
             // Ignore.
         }
@@ -673,7 +668,7 @@ define([], function () {
         try {
             const result = evaluate(expr);
             const formatted = String(result);
-            addHistory(history, expr, formatted);
+            addHistory(expr, formatted);
             input.value = formatted;
             input.focus();
         } catch (e) {
@@ -682,6 +677,7 @@ define([], function () {
         }
     };
 
+    let historyKey = null;
     let historyItems = null;
 
     const init = (cmid) => {
@@ -689,9 +685,9 @@ define([], function () {
         calculator.style.display = "block"
 
         const input = document.getElementById("scicalc-display");
-        const history = document.getElementById("scicalc-history");
-        historyItems = loadHistory(`mod_scicalc_history_v1_${cmid}`);
-        renderHistory(history);
+        historyKey = `mod_scicalc_history_v1_${cmid}`;
+        historyItems = loadHistory();
+        renderHistory();
 
         let equalsLocked = false;
         let calculatorcontrols = document.querySelector("#calculator-area .calculator-controls")
@@ -755,9 +751,9 @@ define([], function () {
             }
 
             if (action === "clear-history") {
-                history.innerHTML = "";
+                document.getElementById("scicalc-history").innerHTML = "";
                 historyItems.length = 0;
-                renderHistory(history, historyItems);
+                renderHistory();
                 clearHistoryStorage();
                 return;
             }
