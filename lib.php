@@ -34,6 +34,10 @@ function scicalc_supports(string $feature) {
             return true;
         case FEATURE_SHOW_DESCRIPTION:
             return true;
+        case FEATURE_MOD_ARCHETYPE:
+            return MOD_ARCHETYPE_RESOURCE;
+        case FEATURE_MOD_PURPOSE:
+            return MOD_PURPOSE_CONTENT;
         case FEATURE_BACKUP_MOODLE2:
             return false;
         default:
