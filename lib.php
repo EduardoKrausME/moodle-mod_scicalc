@@ -41,7 +41,7 @@ function scicalc_supports(string $feature) {
         case FEATURE_MOD_PURPOSE:
             return MOD_PURPOSE_CONTENT;
         case FEATURE_BACKUP_MOODLE2:
-            return false;
+            return true;
         case FEATURE_GROUPS:
             return true;
         case FEATURE_GROUPINGS:
