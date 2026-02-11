@@ -79,7 +79,6 @@ class restore_scicalc_activity_task extends restore_activity_task {
         $rules[] = new restore_decode_rule("SCICALCINDEX", '/mod/scicalc/index.php?id=$1', "course");
 
         return $rules;
-
     }
 
     /**
