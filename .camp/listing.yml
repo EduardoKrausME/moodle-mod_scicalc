@@ -1,0 +1,23 @@
+# (RFC §4.1). Authors update their listing with an ordinary commit; camp
+# ingests and hash-pins it at each tagged release. Listing for mod_scicalc.
+
+name: "Scientific Calculator"
+summary: "Scientific calculator available as an activity within courses."
+description: |
+  Scientific calculator available as an activity within courses.
+
+  This is a Moodle activity module that adds a clean, fast, scientific calculator directly inside your course - perfect for math, physics, engineering, finance, and STEM training where students need a reliable tool without leaving the LMS.
+
+  Key capabilities:
+  - Type an expression ' press Enter or = .
+  - Functions insert as sin( , sqrt( , pow( to speed up usage.
+  - History items are clickable ' reuse results instantly.
+
+  Supported Moodle versions in the supplied plugin list: 3.9 - 5.0.
+
+labels:
+  - fully-free
+category: "integrations"
+links:
+  docs: https://github.com/EduardoKrausME/moodle-mod_scicalc#readme
+  issues: https://github.com/EduardoKrausME/moodle-mod_scicalc/issues
