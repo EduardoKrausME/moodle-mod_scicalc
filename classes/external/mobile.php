@@ -33,7 +33,7 @@ use external_single_structure;
 use external_value;
 use mod_scicalc\event\course_module_viewed;
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
 require_once("{$CFG->libdir}/externallib.php");
 require_once("{$CFG->libdir}/completionlib.php");
