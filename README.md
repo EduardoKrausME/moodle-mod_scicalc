@@ -1,8 +1,8 @@
-# mod_scicalc — Scientific Calculator (Moodle mod)
+# mod_scicalc - Scientific Calculator (Moodle mod)
 
 **mod_scicalc** adds a modern, lightweight, responsive **Scientific Calculator** activity to a course, built in **JavaScript (client-side)** with a clean UI.
 
-> It does not use `eval()` — expressions are interpreted by a simple parser (tokenization + shunting-yard + RPN), offering more security and control.
+> It does not use `eval()` - expressions are interpreted by a simple parser (tokenization + shunting-yard + RPN), offering more security and control.
 
 ## Features
 
